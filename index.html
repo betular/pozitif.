@@ -1,0 +1,141 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>3D Elektrik Alan - Pozitif Yük</title>
+  <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  <style>
+    .a-enter-vr { display: none !important; }
+  </style>
+</head>
+
+<body style="margin: 0; overflow: hidden;">
+
+<a-scene embedded
+  arjs="sourceType: webcam; debugUIEnabled: false;"
+  vr-mode-ui="enabled: false">
+
+  <a-marker preset="hiro">
+
+    <a-entity id="physics-model" position="0 0.4 0">
+
+      <!-- Pozitif yüklü küre -->
+      <a-sphere
+        radius="0.08"
+        color="#FF0000"
+        material="roughness: 0.1; metalness: 0.5">
+      </a-sphere>
+
+      <!-- Pozitif yük işareti -->
+      <a-text
+        value="+"
+        position="0 0.20 0"
+        rotation="-90 0 0"
+        align="center"
+        color="#FFFFFF"
+        width="2"
+        scale="3 3 3"
+        side="double">
+      </a-text>
+
+      <a-entity id="field-lines"></a-entity>
+
+    </a-entity>
+  </a-marker>
+
+  <a-entity camera></a-entity>
+</a-scene>
+
+<script>
+window.onload = () => {
+
+  const container = document.querySelector('#field-lines');
+
+  const numVectors = 32;
+  const fieldLength = 3;
+
+  for (let i = 0; i < numVectors; i++) {
+
+    // Fibonacci küresi
+    let y = 1 - (i / (numVectors - 1)) * 2;
+    let rAtY = Math.sqrt(1 - y * y);
+
+    let goldenAngle = Math.PI * (3 - Math.sqrt(5));
+    let theta = goldenAngle * i;
+
+    let x = Math.cos(theta) * rAtY;
+    let z = Math.sin(theta) * rAtY;
+
+    let dir = new THREE.Vector3(x, y, z).normalize();
+
+    // Vektör grubu
+    let vectorGroup = document.createElement('a-entity');
+
+    // KESİNTİSİZ UZUN ELEKTRİK ALAN ÇİZGİSİ
+    let line = document.createElement('a-cylinder');
+
+    line.setAttribute('radius', '0.003');
+    line.setAttribute('height', fieldLength);
+    line.setAttribute('color', '#FFD700');
+    line.setAttribute('material', {
+      roughness: 0.2
+    });
+
+    line.setAttribute('position', {
+      x: 0,
+      y: fieldLength / 2,
+      z: 0
+    });
+
+    // VEKTÖR OK UCU
+    let arrowHead = document.createElement('a-entity');
+
+    let arrowLeft = document.createElement('a-cylinder');
+    arrowLeft.setAttribute('radius', '0.003');
+    arrowLeft.setAttribute('height', '0.12');
+    arrowLeft.setAttribute('color', '#FFD700');
+    arrowLeft.setAttribute('material', { roughness: 0.2 });
+    arrowLeft.setAttribute('position', '-0.035 -0.045 0');
+    arrowLeft.setAttribute('rotation', '0 0 -45');
+
+    let arrowRight = document.createElement('a-cylinder');
+    arrowRight.setAttribute('radius', '0.003');
+    arrowRight.setAttribute('height', '0.12');
+    arrowRight.setAttribute('color', '#FFD700');
+    arrowRight.setAttribute('material', { roughness: 0.2 });
+    arrowRight.setAttribute('position', '0.035 -0.045 0');
+    arrowRight.setAttribute('rotation', '0 0 45');
+
+    arrowHead.appendChild(arrowLeft);
+    arrowHead.appendChild(arrowRight);
+
+    arrowHead.setAttribute('position', {
+      x: 0,
+      y: fieldLength,
+      z: 0
+    });
+
+    // Dışarıya doğru yönlendirme
+    let lookAtPos = dir.clone().multiplyScalar(2);
+
+    vectorGroup.addEventListener('loaded', () => {
+
+      vectorGroup.object3D.lookAt(lookAtPos);
+
+      vectorGroup.object3D.rotateX(Math.PI / 2);
+
+    });
+
+    vectorGroup.appendChild(line);
+    vectorGroup.appendChild(arrowHead);
+
+    container.appendChild(vectorGroup);
+  }
+
+};
+</script>
+
+</body>
+</html>
